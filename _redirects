@@ -1,4 +1,2 @@
-# Netlify redirects
-/app      /app.html   200
-/demo     /app.html   200
-/*        /index.html 404
+/app     /app.html   200
+/demo    /app.html   200
