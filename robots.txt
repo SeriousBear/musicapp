@@ -1,0 +1,7 @@
+# Encore — robots.txt
+User-agent: *
+Allow: /
+Disallow: /css/
+Disallow: /js/
+
+Sitemap: https://yourdomain.com/sitemap.xml
