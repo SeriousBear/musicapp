@@ -84,7 +84,7 @@ body::before {
 }
 
 /* ── NAVIGATION ── */
-nav {
+nav#nav {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
@@ -97,7 +97,7 @@ nav {
   backdrop-filter: blur(0);
   transition: background .4s, backdrop-filter .4s;
 }
-nav.scrolled {
+nav#nav.scrolled {
   background: rgba(7,7,7,.92);
   backdrop-filter: blur(16px);
 }
@@ -513,7 +513,7 @@ footer {
   .photo-item.wide  { grid-column: span 2; }
 }
 @media (max-width: 600px) {
-  nav { padding: 16px 20px; padding-top: max(16px, calc(16px + env(safe-area-inset-top))); }
+  nav#nav { padding: 16px 20px; padding-top: max(16px, calc(16px + env(safe-area-inset-top))); }
   .nav-links { display: none; }
   section { padding: 70px 20px; }
   .hero { padding: 90px 20px 120px; }
