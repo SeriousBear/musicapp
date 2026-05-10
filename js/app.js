@@ -557,20 +557,24 @@ async function doScan(setSt, setPr, userId) {
 
   // Multiple search passes to maximize coverage across ALL ticket platforms
   const searches = [
-    // Major platforms by sender domain
-    "from:(ticketmaster.com OR seatgeek.com OR axs.com OR dice.fm OR etix.com OR tixr.com OR vividseats.com OR tickpick.com OR showclix.com)",
-    // More platforms including RA
-    "from:(livenation.com OR eventbrite.com OR eventbritemail.com OR frontgatetickets.com OR universe.com OR bandsintown.com OR ra.co OR residentadvisor.net OR ticketweb.com OR eventim.com)",
-    // RA specific — catches after-parties, club nights
-    "from:(ra.co OR residentadvisor.net)",
-    // Subject line patterns — catches any sender including venues and promoters
-    'subject:("your tickets" OR "ticket confirmation" OR "e-ticket" OR "order confirmation") (concert OR show OR festival OR tour OR live OR venue OR party OR event)',
-    // Broader subject patterns — after-parties, club nights, raves
-    'subject:("you\'re going" OR "booking confirmation" OR "your order" OR "your booking") (ticket OR artist OR venue OR show OR festival OR party OR rave OR club)',
-    // Receipt-style from ANY sender — catches small venues and local promoters
-    "subject:(receipt OR confirmation) (ticket OR admission OR pass OR entry) (concert OR show OR festival OR tour OR party OR event)",
-    // Wide net — any ticket-related email in last 2 years
-    "subject:(ticket OR tickets) (artist OR venue OR festival OR show OR concert OR party OR rave OR tour) newer_than:2y",
+    // Major platforms — using @ format for more reliable matching
+    "from:(@ticketmaster.com OR @seatgeek.com OR @axs.com OR @dice.fm OR @etix.com OR @tixr.com OR @vividseats.com OR @tickpick.com OR @showclix.com OR @stubhub.com)",
+    // More platforms — RA, See Tickets, Eventbrite, Live Nation, etc.
+    "from:(@ra.co OR @residentadvisor.net OR @seetickets.us OR @seetickets.com OR @livenation.com OR @eventbrite.com OR @eventbritemail.com OR @frontgatetickets.com OR @universe.com OR @bandsintown.com OR @ticketweb.com OR @eventim.com)",
+    // Catch-all for noreply addresses from ticket senders
+    "from:(noreply OR no-reply OR notifications OR tickets OR orders) (ticket OR ticketing OR event OR concert OR booking OR admission)",
+    // RA specifically by domain
+    "from:ra.co OR from:residentadvisor.net",
+    // See Tickets specifically
+    "from:seetickets.us OR from:seetickets.com",
+    // Subject patterns — any sender
+    'subject:("your tickets" OR "your ticket" OR "ticket confirmation" OR "e-ticket" OR "order confirmation" OR "purchase confirmation")',
+    // Booking/order patterns
+    'subject:("booking confirmation" OR "your order" OR "your booking" OR "order #" OR "you\'re going")',
+    // Receipt-style — catches small venues and local promoters
+    "subject:(receipt OR confirmation) (ticket OR admission OR pass OR entry OR show OR concert OR event OR festival OR party)",
+    // Wide net — any ticket email in last 2 years
+    "subject:(ticket OR tickets OR admission) newer_than:2y",
   ];
 
   // Run all searches and deduplicate by message id
@@ -645,6 +649,9 @@ async function doScan(setSt, setPr, userId) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
@@ -2660,11 +2667,11 @@ function App() {
   };
 
   const scanGmail = async () => {
-    if (GOOGLE_CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID_HERE") {
-      toast(
-        "Add your Google Client ID to app.js to enable Gmail scanning.",
-        true,
-      );
+    if (
+      ANTHROPIC_API_KEY === "YOUR_ANTHROPIC_API_KEY_HERE" ||
+      GOOGLE_CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID_HERE"
+    ) {
+      toast("Set API keys — see setup guide at bottom of file.", true);
       return;
     }
     setScanning(true);
