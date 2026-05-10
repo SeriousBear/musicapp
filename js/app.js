@@ -665,7 +665,7 @@ async function doScan(setSt, setPr, userId) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5",
       max_tokens: 8000,
       system: `You are an expert concert ticket email parser. Extract every concert/show/festival/event from these emails.
 Be thorough — parse ticket confirmations from ANY ticketing platform, venue, or promoter.
