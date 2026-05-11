@@ -647,8 +647,7 @@ async function doScan(setSt, setPr, userId) {
         )
       ).json();
       const subj =
-        (m.payload?.headers?.find((h) => h.name === "Subject") || {}).value ||
-        "";
+        (m.payload?.headers?.find((h) => h.name === "Subject") || {}).value || "";
       const from =
         (m.payload?.headers?.find((h) => h.name === "From") || {}).value || "";
       const date =
@@ -670,25 +669,9 @@ async function doScan(setSt, setPr, userId) {
           .trim()
           .slice(0, 1200);
         console.log("FULL BODY EMAIL:", subj, "\n", plainText.slice(0, 300));
-        content =
-          "From: " +
-          from +
-          "\nSubject: " +
-          subj +
-          "\nDate: " +
-          date +
-          "\nBody: " +
-          (plainText || m.snippet || "");
+        content = "From: " + from + "\nSubject: " + subj + "\nDate: " + date + "\nBody: " + (plainText || m.snippet || "");
       } else {
-        content =
-          "From: " +
-          from +
-          "\nSubject: " +
-          subj +
-          "\nDate: " +
-          date +
-          "\nSnippet: " +
-          (m.snippet || "");
+        content = "From: " + from + "\nSubject: " + subj + "\nDate: " + date + "\nSnippet: " + (m.snippet || "");
       }
       bodies.push(content);
     } catch (e) {
