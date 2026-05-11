@@ -583,9 +583,6 @@ async function doScan(setSt, setPr, userId) {
   // Run all searches and deduplicate by message id
   const seen = new Set();
   const allMsgs = [];
-    "Got OAuth token:",
-    token ? "YES (" + token.substring(0, 20) + "...)" : "NO",
-  );
   for (let s = 0; s < searches.length; s++) {
     setPr(10 + Math.round((s / searches.length) * 25));
     try {
