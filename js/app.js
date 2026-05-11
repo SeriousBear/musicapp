@@ -575,6 +575,9 @@ async function doScan(setSt, setPr, userId) {
     "subject:(receipt OR confirmation) (ticket OR admission OR pass OR entry OR show OR concert OR event OR festival OR party)",
     // Wide net — any ticket email in last 2 years
     "subject:(ticket OR tickets OR admission) newer_than:2y",
+    // Payment plan emails — specifically targets Movement-style subjects
+    "from:seetickets.us subject:(payment OR order OR receipt)",
+    "subject:(payment plan) (festival OR concert OR show OR event OR ticket)",
   ];
 
   // Run all searches and deduplicate by message id
@@ -618,24 +621,9 @@ async function doScan(setSt, setPr, userId) {
   setPr(35);
   setSt("Reading " + allMsgs.length + " emails…");
 
-  // Helper to decode base64url email body
-  const decodeBody = (payload) => {
-    try {
-      if (payload.body?.data) {
-        return atob(payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-      }
-      if (payload.parts) {
-        for (const part of payload.parts) {
-          const text = decodeBody(part);
-          if (text) return text;
-        }
-      }
-    } catch (e) {}
-    return "";
-  };
-
+  // Fetch full snippets for top 50 unique emails
   const bodies = [];
-  const toFetch = allMsgs.slice(0, 50);
+  const toFetch = allMsgs.slice(0, 75);
   for (let i = 0; i < toFetch.length; i++) {
     try {
       const m = await (
@@ -647,33 +635,22 @@ async function doScan(setSt, setPr, userId) {
         )
       ).json();
       const subj =
-        (m.payload?.headers?.find((h) => h.name === "Subject") || {}).value || "";
+        (m.payload?.headers?.find((h) => h.name === "Subject") || {}).value ||
+        "";
       const from =
         (m.payload?.headers?.find((h) => h.name === "From") || {}).value || "";
       const date =
         (m.payload?.headers?.find((h) => h.name === "Date") || {}).value || "";
-
-      // For payment/See Tickets emails decode full body so AI sees event details
-      const isPaymentEmail =
-        subj.toLowerCase().includes("payment") ||
-        subj.toLowerCase().includes("order receipt") ||
-        from.toLowerCase().includes("seetickets") ||
-        from.toLowerCase().includes("see tickets");
-
-      let content;
-      if (isPaymentEmail) {
-        const fullBody = decodeBody(m.payload);
-        const plainText = fullBody
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 1200);
-        console.log("FULL BODY EMAIL:", subj, "\n", plainText.slice(0, 300));
-        content = "From: " + from + "\nSubject: " + subj + "\nDate: " + date + "\nBody: " + (plainText || m.snippet || "");
-      } else {
-        content = "From: " + from + "\nSubject: " + subj + "\nDate: " + date + "\nSnippet: " + (m.snippet || "");
-      }
-      bodies.push(content);
+      bodies.push(
+        "From: " +
+          from +
+          "\nSubject: " +
+          subj +
+          "\nDate: " +
+          date +
+          "\nSnippet: " +
+          (m.snippet || ""),
+      );
     } catch (e) {
       /* skip failed fetches */
     }
@@ -697,9 +674,8 @@ async function doScan(setSt, setPr, userId) {
 
 STRICT RULES — EXTRACT ONLY EMAILS THAT MATCH ALL OF THESE:
 
-1. CONFIRMED PURCHASES ONLY — the email must confirm money was paid. Look for ANY of:
-   ✓ "Your order", "Order #", "Order Number", "Order Receipt", "Your tickets", "You're going", "Order confirmation", "Payment received", "Booking confirmation", "Billed to Card", "Customer Name", "Purchase Date", "Payment plan", "Initial Payment", "Installment", "Payment Plan Complete"
-   ✓ PAYMENT PLAN EMAILS: ANY installment payment for an event IS a confirmed purchase. Include even "Initial Payment" or "Payment 1 of 4"
+1. CONFIRMED PURCHASES ONLY — the user must have actually bought a ticket. Look for phrases like:
+   ✓ "Your order", "Your tickets", "You're going", "Order confirmation", "Payment received", "Booking confirmation", "Order #", "Payment plan", "Installment payment"
    ✗ DO NOT INCLUDE: newsletters, "On sale now", "Tickets available", "Don't miss", "Just announced", "Save the date", advertisements, presale invites, refund/cancel notices, waitlist emails, "we thought you'd like"
 
 2. MUSIC EVENTS ONLY:
